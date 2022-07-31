@@ -7,6 +7,8 @@ Created on Wed Jul 27 21:21:03 2022
 import numpy as np
 import cv2
 
+sliding = False
+
 def create_image(): 
     arr = np.array([[i, 255, 255] for i in range(180)])
     one = arr.reshape(1, 180, 3)
@@ -33,13 +35,8 @@ def pick_hue(event, x, y, flags, params):
         # on the Shell
         color = hues[y, x]
         color_rgb = np.squeeze(cv2.cvtColor(np.array([[color]]), cv2.COLOR_BGR2RGB))
-        print(color_rgb)
+        # print(color_rgb)
  
-        # displaying the coordinates
-        # on the image window
-        # font = cv2.FONT_HERSHEY_SIMPLEX
-        # cv2.putText(hues, str(color_rgb), (x,y), font,
-        #             1, (255, 255, 255), 2)
         cv2.imshow('hues', hues)
         color_hue = np.squeeze(cv2.cvtColor(np.array([[color]]), cv2.COLOR_BGR2HSV))
         sv_array[:, :, 0] = color_hue[0]
@@ -47,14 +44,24 @@ def pick_hue(event, x, y, flags, params):
         cv2.imshow('saturation and values', sv_display)
 
 def pick_color(event, x, y, flags, params):
-    
+    global sliding
+    color = sv_display[y, x]
     if event == cv2.EVENT_LBUTTONDOWN:
-        color = sv_display[y, x]
+        sliding = True
         final_color[:, :] = color
         cv2.imshow('color', final_color)
         print('hsv', np.squeeze(cv2.cvtColor(np.array([[color]]), cv2.COLOR_BGR2HSV)))
-    
-
+    elif event == cv2.EVENT_MOUSEMOVE:
+        if sliding == True:
+            final_color[:, :] = color
+            cv2.imshow('color', final_color)
+            # print('hsv', np.squeeze(cv2.cvtColor(np.array([[color]]), cv2.COLOR_BGR2HSV)))
+    elif event == cv2.EVENT_LBUTTONUP:
+        sliding = False
+        final_color[:, :] = color
+        cv2.imshow('color', final_color)
+        print('hsv', np.squeeze(cv2.cvtColor(np.array([[color]]), cv2.COLOR_BGR2HSV)))
+        
 
 clean = create_image()
 hues = clean.copy()
