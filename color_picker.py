@@ -8,6 +8,8 @@ import numpy as np
 import cv2
 
 sliding = False
+svy = 0
+svx = 0
 
 def create_image(): 
     arr = np.array([[i, 255, 255] for i in range(180)])
@@ -16,6 +18,11 @@ def create_image():
     resized = cv2.resize(one, (180*5, 100), interpolation = cv2.INTER_AREA)
     rgb = cv2.cvtColor(resized, cv2.COLOR_HSV2BGR)
     return rgb
+
+def update_sv(hue):
+    sv_array[:, :, 0] = color_hue[0]
+    sv_display[:] = cv2.cvtColor(sv_array, cv2.COLOR_HSV2BGR)
+    
 
 def update_color(color): #[b, g, r]
     final_color[:, :] = color
@@ -31,26 +38,43 @@ def convert_color(color):
 
 def pick_hue(event, x, y, flags, params):
     global sliding
+    hue_bgr = hues[y, x]
+    # color = sv_display[svy, svx]
     if event == cv2.EVENT_LBUTTONDOWN:
-        color = hues[y, x]
-        color_rgb = np.squeeze(cv2.cvtColor(np.array([[color]]), cv2.COLOR_BGR2RGB))
+        sliding = True
+        # color_rgb = np.squeeze(cv2.cvtColor(np.array([[color]]), cv2.COLOR_BGR2RGB))
         # print(color_rgb)
  
         # cv2.imshow('hues', hues)
-        color_hue = np.squeeze(cv2.cvtColor(np.array([[color]]), cv2.COLOR_BGR2HSV))
+        color_hue = np.squeeze(cv2.cvtColor(np.array([[hue_bgr]]), cv2.COLOR_BGR2HSV))
         sv_array[:, :, 0] = color_hue[0]
         sv_display[:] = cv2.cvtColor(sv_array, cv2.COLOR_HSV2BGR)
         cv2.imshow('saturation and values', sv_display)
-    # elif event == cv2.EVENT_MOUSEMOVE:
-    #     if sliding == True:
-    #         update_color(color)
-    # elif event == cv2.EVENT_LBUTTONUP:
-    #     sliding = False
-    #         update_color(color)
-    #     print('hsv', np.squeeze(cv2.cvtColor(np.array([[color]]), cv2.COLOR_BGR2HSV)))
+        color = sv_display[svy, svx]
+        update_color(color)
+    elif event == cv2.EVENT_MOUSEMOVE:
+        if sliding == True:
+            color_hue = np.squeeze(cv2.cvtColor(np.array([[hue_bgr]]), cv2.COLOR_BGR2HSV))
+            sv_array[:, :, 0] = color_hue[0]
+            sv_display[:] = cv2.cvtColor(sv_array, cv2.COLOR_HSV2BGR)
+            cv2.imshow('saturation and values', sv_display)
+            color = sv_display[svy, svx]
+            update_color(color)
+    elif event == cv2.EVENT_LBUTTONUP:
+        sliding = False
+        color_hue = np.squeeze(cv2.cvtColor(np.array([[hue_bgr]]), cv2.COLOR_BGR2HSV))
+        sv_array[:, :, 0] = color_hue[0]
+        sv_display[:] = cv2.cvtColor(sv_array, cv2.COLOR_HSV2BGR)
+        cv2.imshow('saturation and values', sv_display)
+        color = sv_display[svy, svx]
+        update_color(color)
+        print('hsv', np.squeeze(cv2.cvtColor(np.array([[color]]), cv2.COLOR_BGR2HSV)))
 
 def pick_color(event, x, y, flags, params):
     global sliding
+    global svy, svx
+    svy = y
+    svx = x
     color = sv_display[y, x]
     if event == cv2.EVENT_LBUTTONDOWN:
         sliding = True
