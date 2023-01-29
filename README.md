@@ -1,2 +1,2 @@
-# color_picker
+# color-picker
 Color picker using OpenCV in Python
